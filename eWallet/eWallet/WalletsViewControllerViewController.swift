@@ -14,47 +14,20 @@ class WalletsViewController: NSViewController
     @IBOutlet weak var ltcAddress: NSTextField!
     @IBOutlet weak var ethAddress: NSTextField!
     
-    var timer: DispatchSourceTimer?
-    
-    func stopTimer() {
-        timer?.cancel()
-        timer = nil
-    }
-    
-    deinit {
-        self.stopTimer()
-    }
-    
-    func startTimer()
+    func dialogOKCancel(coin: String) -> Bool
     {
-        let queue = DispatchQueue(label: "com.domain.app.timer")  // you can also use `DispatchQueue.main`, if you want
-        timer = DispatchSource.makeTimerSource(queue: queue)
-        timer!.schedule(deadline: .now(), repeating: .seconds(1))
-        timer!.setEventHandler { [weak self] in
-            if Wallet.displayBTC {
-                print(CryptoCoins.BTC)
-            }
-            
-            if Wallet.displayBTC {
-                print(CryptoCoins.LTC)
-                
-            }
-            if Wallet.displayBTC {
-                print(CryptoCoins.ETH)
-                
-            }
-        }
-        timer!.resume()
+        let alert = NSAlert()
+        alert.messageText = coin
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "OK")
+        return alert.runModal() == .alertFirstButtonReturn
     }
     
     override func viewDidLoad(){
         super.viewDidLoad()
-        //self.btcAddress.stringValue = UserDefaults.standard.string(forKey: "BTCaddress")!
-        //self.ltcAddress.stringValue = UserDefaults.standard.string(forKey: "LTCaddress")!
-        //self.ethAddress.stringValue = UserDefaults.standard.string(forKey: "ETHaddress")!
-
-        stopTimer()
-        startTimer()
+        self.btcAddress.stringValue = Wallet.btcAddress//UserDefaults.standard.string(forKey: "BTCaddress")!
+        self.ltcAddress.stringValue = Wallet.ltcAddress//UserDefaults.standard.string(forKey: "LTCaddress")!
+        self.ethAddress.stringValue = Wallet.ethAddress//UserDefaults.standard.string(forKey: "ETHaddress")!
     }
 }
 
@@ -62,51 +35,111 @@ class WalletsViewController: NSViewController
 extension WalletsViewController
 {
     @IBAction func saveBTC(_ sender: NSButton) {
-        GET_BTC(addressBTC: self.btcAddress.stringValue)
+        //Should NOT contain additional symbols
+        let alphaNumericCharacterSet = NSCharacterSet.alphanumerics
+        let filteredCharacters = btcAddress.stringValue.filter {
+            return  String($0).rangeOfCharacter(from: alphaNumericCharacterSet) != nil
+        }
+        btcAddress.stringValue = String(filteredCharacters)
+        for _ in 0...btcAddress.stringValue.count
+        {
+            if btcAddress.stringValue.first == "0"
+            {   btcAddress.stringValue = String(btcAddress.stringValue.dropFirst()) }
+        }
         
-        //save the value of crypto address
-        UserDefaults.standard.set(CryptoCoins.BTC, forKey: "BTCvalue")
-        UserDefaults.standard.set(true, forKey: "BTCdisplay")
-        UserDefaults.standard.set(self.btcAddress.stringValue, forKey: "BTCaddress")
+        //Reset
+        if btcAddress.stringValue == ""{
+            _ = dialogOKCancel(coin: "The value was successfully reseted")
+            UserDefaults.standard.set(false, forKey: "BTCdisplay")
+        } else {
         
-        GET_BTC(addressBTC: self.btcAddress.stringValue)
-        //save the value of crypto address
-        UserDefaults.standard.set(CryptoCoins.BTC, forKey: "BTCvalue")
-        UserDefaults.standard.set(true, forKey: "BTCdisplay")
-        UserDefaults.standard.set(self.btcAddress.stringValue, forKey: "BTCaddress")
-
+            if btcAddress.stringValue.count == 34{
+                GET_BTC(addressBTC: self.btcAddress.stringValue)
+                //save the value of crypto address
+                UserDefaults.standard.set(CryptoCoins.BTC, forKey: "BTCvalue")
+                UserDefaults.standard.set(true, forKey: "BTCdisplay")
+                UserDefaults.standard.set(self.btcAddress.stringValue, forKey: "BTCaddress")
+                
+                /*if let path = Bundle.main.resourceURL?.deletingLastPathComponent().deletingLastPathComponent().absoluteString {
+                    NSLog("restart \(path)")
+                    _ = Process.launchedProcess(launchPath: "/usr/bin/open", arguments: [path])
+                    NSApp.terminate(self)
+                }*/
+            } else { _ = dialogOKCancel(coin: "Incorrect length of BTC address or contains incorrect symbols!") }
+            
+        }
     }
     
     @IBAction func saveLTC(_ sender: NSButton) {
-        GET_LTC(addressLTC: self.ltcAddress.stringValue)
+        //Should NOT contain additional symbols
+        let alphaNumericCharacterSet = NSCharacterSet.alphanumerics
+        let filteredCharacters = ltcAddress.stringValue.filter {
+            return  String($0).rangeOfCharacter(from: alphaNumericCharacterSet) != nil
+        }
+        ltcAddress.stringValue = String(filteredCharacters)
+        for _ in 0...ltcAddress.stringValue.count
+        {
+            if ltcAddress.stringValue.first == "0"
+            {   ltcAddress.stringValue = String(ltcAddress.stringValue.dropFirst()) }
+        }
         
-        //save the value of crypto address
-        UserDefaults.standard.set(CryptoCoins.LTC, forKey: "LTCvalue")
-        UserDefaults.standard.set(true, forKey: "LTCdisplay")
-        UserDefaults.standard.set(self.ltcAddress.stringValue, forKey: "LTCaddress")
-        
-        GET_LTC(addressLTC: self.ltcAddress.stringValue)
-        
-        //save the value of crypto address
-        UserDefaults.standard.set(CryptoCoins.LTC, forKey: "LTCvalue")
-        UserDefaults.standard.set(true, forKey: "LTCdisplay")
-        UserDefaults.standard.set(self.ltcAddress.stringValue, forKey: "LTCaddress")
+        //Reset
+        if ltcAddress.stringValue == ""{
+            _ = dialogOKCancel(coin: "The value was successfully reseted")
+        } else {
+            
+            if ltcAddress.stringValue.count == 34{
+                GET_LTC(addressLTC: self.ltcAddress.stringValue)
+                
+                //save the value of crypto address
+                UserDefaults.standard.set(CryptoCoins.LTC, forKey: "LTCvalue")
+                UserDefaults.standard.set(true, forKey: "LTCdisplay")
+                UserDefaults.standard.set(self.ltcAddress.stringValue, forKey: "LTCaddress")
+                
+                /*if let path = Bundle.main.resourceURL?.deletingLastPathComponent().deletingLastPathComponent().absoluteString {
+                    NSLog("restart \(path)")
+                    _ = Process.launchedProcess(launchPath: "/usr/bin/open", arguments: [path])
+                    NSApp.terminate(self)
+                }*/
+            } else { _ = dialogOKCancel(coin: "Incorrect length of LTC address or contains incorrect symbols!") }
+            
+        }
     }
     
     @IBAction func saveETH(_ sender: NSButton) {
-        GET_ETH(addressETH: self.ethAddress.stringValue)
+        //Should NOT contain additional symbols
+        let alphaNumericCharacterSet = NSCharacterSet.alphanumerics
+        let filteredCharacters = ethAddress.stringValue.filter {
+            return  String($0).rangeOfCharacter(from: alphaNumericCharacterSet) != nil
+        }
+        ethAddress.stringValue = String(filteredCharacters)
+        for _ in 0...ethAddress.stringValue.count
+        {
+            if ethAddress.stringValue.first == "0"
+            {   ethAddress.stringValue = String(ethAddress.stringValue.dropFirst()) }
+        }
         
-        //save the value of crypto address
-        UserDefaults.standard.set(CryptoCoins.ETH, forKey: "ETHvalue")
-        UserDefaults.standard.set(true, forKey: "ETHdisplay")
-        UserDefaults.standard.set(self.ethAddress.stringValue, forKey: "ETHaddress")
-        
-        GET_ETH(addressETH: self.ethAddress.stringValue)
-        
-        //save the value of crypto address
-        UserDefaults.standard.set(CryptoCoins.ETH, forKey: "ETHvalue")
-        UserDefaults.standard.set(true, forKey: "ETHdisplay")
-        UserDefaults.standard.set(self.ethAddress.stringValue, forKey: "ETHaddress")
+        //Reset
+        if ethAddress.stringValue == ""{
+            _ = dialogOKCancel(coin: "The value was successfully reseted")
+        } else {
+            
+            if ethAddress.stringValue.count == 41{
+                GET_ETH(addressETH: self.ethAddress.stringValue)
+                
+                //save the value of crypto address
+                UserDefaults.standard.set(CryptoCoins.ETH, forKey: "ETHvalue")
+                UserDefaults.standard.set(true, forKey: "ETHdisplay")
+                UserDefaults.standard.set(self.ethAddress.stringValue, forKey: "ETHaddress")
+                
+                /*if let path = Bundle.main.resourceURL?.deletingLastPathComponent().deletingLastPathComponent().absoluteString {
+                    NSLog("restart \(path)")
+                    _ = Process.launchedProcess(launchPath: "/usr/bin/open", arguments: [path])
+                    NSApp.terminate(self)
+                }*/
+            } else { _ = dialogOKCancel(coin: "Incorrect length of ETH address or contains incorrect symbols!") }
+            
+        }
     }
     
     @IBAction func moreCurrencies(_ sender: NSButton) {
@@ -116,20 +149,20 @@ extension WalletsViewController
     @IBAction func quit(_ sender: NSButton) {
         if self.btcAddress.stringValue == "" {
             //reset the value of crypto BTC
-            UserDefaults.standard.set(0.0, forKey: "BTCvalue")
             UserDefaults.standard.set(false, forKey: "BTCdisplay")
+            UserDefaults.standard.set(self.ltcAddress.stringValue, forKey: "BTCaddress")
             
         }
         if self.ltcAddress.stringValue == "" {
             //reset the value of crypto LTC
-            UserDefaults.standard.set(0.0, forKey: "LTCvalue")
             UserDefaults.standard.set(false, forKey: "LTCdisplay")
+            UserDefaults.standard.set(self.ltcAddress.stringValue, forKey: "LTCaddress")
             
         }
         if self.ethAddress.stringValue == "" {
             //reset the value of crypto ETH
-            UserDefaults.standard.set(0.0, forKey: "ETHvalue")
             UserDefaults.standard.set(false, forKey: "ETHdisplay")
+            UserDefaults.standard.set(self.ltcAddress.stringValue, forKey: "ETHaddress")
         
         }
         NSApplication.shared.terminate(sender)

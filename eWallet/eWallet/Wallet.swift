@@ -12,4 +12,8 @@ struct Wallet {
     static var displayETH:Bool = false
     static var displayBTC:Bool = false
     static var displayLTC:Bool = false
+    
+    static var btcAddress:String = ""
+    static var ltcAddress:String = ""
+    static var ethAddress:String = ""
 }

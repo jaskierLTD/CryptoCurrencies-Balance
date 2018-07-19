@@ -23,7 +23,6 @@ class AppDelegate: NSObject, NSApplicationDelegate
     
     func applicationDidFinishLaunching(_ aNotification: Notification)
     {
-        
         if let button = statusItem.button
         {
             //Output the values
@@ -31,34 +30,51 @@ class AppDelegate: NSObject, NSApplicationDelegate
             var totalStringMenu: String = ""
 
             if UserDefaults.standard.bool(forKey: "BTCdisplay") == true {
-                walletsAmount = walletsAmount + 1
-                totalStringMenu = totalStringMenu+"\(UserDefaults.standard.double(forKey: "BTCvalue").makeShort1f()) BTC, "
-            }
+                walletsAmount = walletsAmount + 1 }
             if UserDefaults.standard.bool(forKey: "LTCdisplay") == true {
-                walletsAmount = walletsAmount + 1
-                totalStringMenu = totalStringMenu+"\(UserDefaults.standard.double(forKey: "LTCvalue").makeShort1f()) LTC, "
-            }
+                walletsAmount = walletsAmount + 1 }
             if UserDefaults.standard.bool(forKey: "ETHdisplay") == true {
-                walletsAmount = walletsAmount + 1
-                totalStringMenu = totalStringMenu+"\(UserDefaults.standard.double(forKey: "ETHvalue").makeShort1f()) ETH, "
+                walletsAmount = walletsAmount + 1 }
+                
+            //in case only 1 value =0.02f
+            if walletsAmount == 1 {
+                print("1 value")
+                if UserDefaults.standard.bool(forKey: "BTCdisplay") == true {
+                    GET_BTC(addressBTC: UserDefaults.standard.string(forKey: "BTCaddress")!)
+                    totalStringMenu = "\(UserDefaults.standard.double(forKey: "BTCvalue")) BTC, " }
+                if UserDefaults.standard.bool(forKey: "LTCdisplay") == true {
+                    GET_LTC(addressLTC: UserDefaults.standard.string(forKey: "LTCaddress")!)
+                    totalStringMenu = "\(UserDefaults.standard.double(forKey: "LTCvalue")) LTC, " }
+                if UserDefaults.standard.bool(forKey: "ETHdisplay") == true {
+                    GET_ETH(addressETH: UserDefaults.standard.string(forKey: "ETHaddress")!)
+                    totalStringMenu = "\(UserDefaults.standard.double(forKey: "ETHvalue")) ETH, " }
             }
             
-            if (walletsAmount == 0)
-            {
+            if walletsAmount > 1 {
+                if UserDefaults.standard.bool(forKey: "BTCdisplay") == true
+                {
+                    Wallet.btcAddress = UserDefaults.standard.string(forKey: "BTCaddress")!
+                    totalStringMenu = totalStringMenu+"\(UserDefaults.standard.double(forKey: "BTCvalue").makeShort1f()) BTC, "
+                }
+                
+                if UserDefaults.standard.bool(forKey: "LTCdisplay") == true
+                {
+                    Wallet.ltcAddress = UserDefaults.standard.string(forKey: "LTCaddress")!
+                    totalStringMenu = totalStringMenu+"\(UserDefaults.standard.double(forKey: "LTCvalue").makeShort1f()) LTC, "
+                }
+                
+                if UserDefaults.standard.bool(forKey: "ETHdisplay") == true
+                {
+                    Wallet.ethAddress = UserDefaults.standard.string(forKey: "ETHaddress")!
+                    totalStringMenu = totalStringMenu+"\(UserDefaults.standard.double(forKey: "ETHvalue").makeShort1f()) ETH, "
+                }
+            }
+            if (walletsAmount == 0) || totalStringMenu == ""{
                 //No addresses given
                 button.image = NSImage(named:NSImage.Name("StatusBarButtonImage"))
-                
             }
-                
-                //in case only 1 value =0.02f
-                if walletsAmount == 1
-                {
-                    if Wallet.displayBTC == true { totalStringMenu = "\(UserDefaults.standard.double(forKey: "BTCvalue").makeShort2f()) BTC, " }
-                    if Wallet.displayLTC == true { totalStringMenu = "\(UserDefaults.standard.double(forKey: "LTCvalue").makeShort2f()) LTC, " }
-                    if Wallet.displayETH == true { totalStringMenu = "\(UserDefaults.standard.double(forKey: "ETHvalue").makeShort2f()) ETH, " }
-                }
-                button.title.append(contentsOf: totalStringMenu.dropLast().dropLast())
-                button.action = #selector(togglePopover(_:))
+            button.title.append(contentsOf: totalStringMenu.dropLast().dropLast())
+            button.action = #selector(togglePopover(_:))
         }
         popover.contentViewController = WalletsViewController.freshController()
         
@@ -81,7 +97,7 @@ class AppDelegate: NSObject, NSApplicationDelegate
             eventMonitor?.start()
         }
         
-        //--------------------------------- UNCOMMENT TO RESET THE FIRST LAUNCH ---------------------------------
+        //--------------------------------- UNCOMMENT TO RESET THE FIRST LAUNCH 
         //UserDefaults.standard.set(false, forKey: "launchedBefore")
     }
     

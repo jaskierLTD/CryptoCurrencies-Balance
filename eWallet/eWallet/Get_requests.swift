@@ -17,7 +17,7 @@ func GET_ETH(addressETH : String)
         // Send HTTP GET Request
         let address: String = addressETH
         let headers = ["content-type": "application/x-www-form-urlencoded"]
-        let request = NSMutableURLRequest(url: NSURL(string: "https://api.etherscan.io/api?module=account&action=balance&address=\(address)&tag=latest&apikey=YourApiKeyToken")! as URL,
+        let request = NSMutableURLRequest(url: NSURL(string: "https://api.etherscan.io/api?module=account&action=balance&address=0\(address)&tag=latest&apikey=YourApiKeyToken")! as URL,
                                           cachePolicy: .useProtocolCachePolicy,
                                           timeoutInterval: 10.0)
         request.httpMethod = "GET"
@@ -35,6 +35,7 @@ func GET_ETH(addressETH : String)
                 //successfully connected
                 if(statusCode == 200)
                 {
+                    if (String(data: data!, encoding: .utf8)! != "Checksum does not validate") && (String(data: data!, encoding: .utf8)! != "Illegal character 0 at position 0"){
                     do {
                         let jsonResponse = try JSONSerialization.jsonObject(with: data!, options: .mutableContainers)
                         print("ETH parsed value")
@@ -55,9 +56,7 @@ func GET_ETH(addressETH : String)
                                     let correctDouble:Double = Double(money)! / Double(landslide)
                                     let cutThePrice2Symbols = NSString(format: "%0.02f", correctDouble as CVarArg)
                                     let cutNoZeros = cutThePrice2Symbols.doubleValue
-                                    CryptoCoins.ETH = cutNoZeros
-                                
-                                //print(CryptoCoins.ETH)
+                                    UserDefaults.standard.set(cutNoZeros, forKey: "ETHvalue")
 
                             }
                         }
@@ -66,6 +65,7 @@ func GET_ETH(addressETH : String)
                     catch let error
                     {
                         print(error)
+                    }
                     }
                 }
             }
@@ -79,25 +79,27 @@ func GET_BTC(addressBTC : String)
 {
     if addressBTC != ""
     {
+        
         let address: String = addressBTC
         let confirmations: Int = 0
         let url = URL(string: "https://blockchain.info/q/addressbalance/\(address)?confirmations=\(confirmations)")!
         let request = URLRequest(url: url)
         
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            //if let response = response, let data = data
-            if let data = data
+            if let _ = response, let data = data
             {
-                print("BTC parsed values")
-                //print(response)
-                let money = String(data: data, encoding: .utf8)!
-                let landslide = (pow(Double(10),Double(8)))
-                let correctDouble:Double = Double(money)! / Double(landslide)
-                let cutThePrice2Symbols = NSString(format: "%0.02f", correctDouble as CVarArg)
-                let cutNoZeros = cutThePrice2Symbols.doubleValue
-                CryptoCoins.BTC = cutNoZeros
-
-                //print(CryptoCoins.BTC)
+                if (String(data: data, encoding: .utf8)! != "Checksum does not validate") && (String(data: data, encoding: .utf8)! != "Illegal character 0 at position 0"){
+                    print("BTC parsed values")
+                    //print(response)
+                    let money = String(data: data, encoding: .utf8)!
+                    //print(money as NSString)
+                    let landslide = (pow(Double(10),Double(8)))
+                    let correctDouble:Double = Double(money)! / Double(landslide)
+                    let cutThePrice2Symbols = NSString(format: "%0.02f", correctDouble as CVarArg)
+                    let cutNoZeros = cutThePrice2Symbols.doubleValue
+                    UserDefaults.standard.set(cutNoZeros, forKey: "BTCvalue")
+                    //print(CryptoCoins.BTC)
+                }
 
             } else {
                 print(error as Any)
@@ -130,9 +132,11 @@ func GET_LTC(addressLTC : String)
             if (error != nil) {
                 print(error as Any)
             } else {
+                
+                if (String(data: data!, encoding: .utf8)! != "Checksum does not validate") && (String(data: data!, encoding: .utf8)! != "Illegal character 0 at position 0"){
                 let httpResponse = response as? HTTPURLResponse
                 let statusCode = httpResponse?.statusCode
-                print("LTC parsed value")
+                //print("LTC parsed value")
                 //print(httpResponse as Any)
                 
                 //if successfully connected code: 200-300
@@ -140,7 +144,6 @@ func GET_LTC(addressLTC : String)
                 {
                     do {
                         let jsonResponse = try JSONSerialization.jsonObject(with: data!, options: .mutableContainers) as? [String:Any]
-                        //print(jsonResponse)
                         //Dictionary inside
                         let dataDictionary:NSDictionary = jsonResponse! as NSDictionary
                         for (key,_) in dataDictionary
@@ -152,11 +155,15 @@ func GET_LTC(addressLTC : String)
                                 {
                                     if key as! String == "confirmed_balance"
                                     {
-                                        let cutThePrice2Symbols = NSString(format: "%0.02f", value as! CVarArg)
-                                        let cutNoZeros = cutThePrice2Symbols.doubleValue
-
-                                        CryptoCoins.LTC = cutNoZeros
-                                        //print(CryptoCoins.LTC)
+                                            //print("LTC parsed values")
+                                            //print(response)
+                                            let money = String(value as! NSString)
+                                            //print(money as NSString)
+                                            let correctDouble:Double = Double(money)!
+                                            let cutThePrice2Symbols = NSString(format: "%0.02f", correctDouble as CVarArg)
+                                            let cutNoZeros = cutThePrice2Symbols.doubleValue
+                                            UserDefaults.standard.set(cutNoZeros, forKey: "LTCvalue")
+                                            //print(CryptoCoins.LTC)
                                     }
                                 }
                         }
@@ -166,6 +173,7 @@ func GET_LTC(addressLTC : String)
                     {
                         print(error)
                     }
+                }
                 }
             }
         })
